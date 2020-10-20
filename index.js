@@ -1,0 +1,101 @@
+const Discord = require("discord.js");
+const client = new Discord.Client();
+const fs = require("fs");
+const http = require('http');
+const express = require('express');
+const app = express();
+
+const discord_token = process.env.TOKEN;
+const prefix = process.env.PREFIX;
+
+// const newUsers = new Discord.Collection();
+// var botMembers = 0;
+
+// function getDefaultChannel(guild) { 
+//   if (guild.systemChannelID) 
+//     if (guild.channels.get(guild.systemChannelID).permissionsFor(guild.client.user).has("SEND_MESSAGES")) return guild.channels.get(guild.systemChannelID)  
+  
+//   if(guild.channels.exists("name", "general"))
+//     if (guild.channels.find("name", "general").permissionsFor(guild.client.user).has("SEND_MESSAGES")) return guild.channels.find("name", "general")   
+
+//   return guild.channels
+//    .filter(c => c.type === "text" &&
+//      c.permissionsFor(guild.client.user).has("SEND_MESSAGES"))
+//    .first();  
+// }
+
+// client.on("guildMemberAdd", (member) => {
+//   const guild = member.guild;
+//   const defaultChannel = getDefaultChannel(guild); 
+//   newUsers.set(member.id, member.user);
+
+  
+//   let embed = new Discord.RichEmbed()
+//     .setDescription(`**${member.displayName}#${member.user.discriminator}** has joined the server.`)
+//     .setThumbnail(member.user.displayAvatarURL)
+//     .setColor("55A202")
+//     .setTimestamp()
+//     .setFooter(`Total members: ${member.guild.memberCount}`)    
+    
+//   defaultChannel.send(embed=embed);    
+//   if (newUsers.size > 5) {
+//     newUsers.clear();
+//   }
+// });
+
+// client.on("guildMemberRemove", (member) => {
+//   const guild = member.guild;
+//   const defaultChannel = getDefaultChannel(guild); 
+//   newUsers.set(member.id, member.user);
+
+//   let embed = new Discord.RichEmbed()
+//     .setDescription(`**${member.displayName}#${member.user.discriminator}** left the server.`)
+//     .setThumbnail(member.user.displayAvatarURL)
+//     .setColor("D0021B")
+//     .setTimestamp()
+//     .setFooter(`Total members: ${member.guild.memberCount}`)    
+    
+//   defaultChannel.send(embed=embed);  
+//   if(newUsers.has(member.id)) newUsers.delete(member.id);
+// });
+
+client.on("ready", () => {
+  client.guilds.forEach((guild) => {
+    var members = guild.memberCount;
+    
+    botMembers = botMembers + members;
+  });
+  
+  let currentmessage;
+  var Messages = [
+    "discord.gg/ha22cQX | +help",
+    `on ${client.guilds.size} guilds!`,
+    `with foxes`
+  ];
+  
+  client.user.setActivity(`on ${client.guilds.size} guilds!`);
+  
+  setInterval(function() {
+    var randomMessage = Messages[Math.floor(Math.random()*Messages.length)];
+    client.user.setActivity(randomMessage);
+  }, 4666);
+});
+
+client.on("message", message => {
+  if (message.author.bot) return;
+  if(message.content.indexOf(prefix) !== 0) return;
+
+  // This is the best way to define args. Trust me.
+  const args = message.content.slice(prefix.length).trim().split(/ +/g);
+  const command = args.shift().toLowerCase();
+
+  // The list of if/else is replaced with those simple 2 lines:
+  try {
+    let commandFile = require(`./commands/${command}.js`);
+    commandFile.run(client, message, args);
+  } catch (err) {
+    console.error(err);
+  }
+});
+
+client.login(discord_token);
